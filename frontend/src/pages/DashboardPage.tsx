@@ -86,3 +86,65 @@ export default function DashboardPage({ user }: { user: User }) {
 
           {/* Team Members Card */}
           <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Team Members</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">1</p>
+              </div>
+              <div className="text-4xl">👥</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Getting Started</h3>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-8 w-8 rounded-md bg-blue-500 text-white">
+                  1
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">Create Your First Project</h4>
+                <p className="text-gray-600 text-sm mt-1">
+                  Start by creating an AI project to track your governance initiatives.
+                </p>
+                <a href="/projects" className="text-blue-600 hover:underline text-sm mt-2 inline-block">
+                  Go to Projects →
+                </a>
+              </div>
+            </div>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-8 w-8 rounded-md bg-blue-500 text-white">
+                  2
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">Set Compliance Policies</h4>
+                <p className="text-gray-600 text-sm mt-1">
+                  Define governance policies and compliance rules for your organization.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-8 w-8 rounded-md bg-blue-500 text-white">
+                  3
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">Monitor & Measure Impact</h4>
+                <p className="text-gray-600 text-sm mt-1">
+                  Track adoption metrics and measure the impact of your AI initiatives.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
