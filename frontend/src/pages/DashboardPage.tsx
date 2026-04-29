@@ -47,7 +47,7 @@ export default function DashboardPage({ user }: { user: any }) {
       </nav>
 
       {/* Main Content */}
-      <main className="w-full px-6 sm:px-8 lg:px-12 py-12">
+      <main className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
         {/* Welcome Section */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user?.email?.split('@')[0]}! 👋</h2>
