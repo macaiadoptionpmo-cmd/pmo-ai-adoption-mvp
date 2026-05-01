@@ -56,11 +56,19 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+<Route
+    path="/projects"
+    element={
+      <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+        <ProjectsPage user={user} />
+      </ProtectedRoute>
+    }
+  />
+    <Route
           path="/projects/:id"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
-              <ProjectsPage user={user} />
+              <ProjectDetailPage user={user} />
             </ProtectedRoute>
           }
         />
