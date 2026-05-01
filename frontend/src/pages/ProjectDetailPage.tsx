@@ -7,6 +7,11 @@ interface Project {
   name: string;
   description: string;
   status: string;
+  business_unit: string | null;
+  ai_type: string | null;
+  risk_level: string | null;
+  start_date: string | null;
+  target_end_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -17,6 +22,9 @@ interface User {
 }
 
 const STATUS_OPTIONS = ['active', 'planning', 'on-hold', 'completed'];
+const BUSINESS_UNIT_OPTIONS = ['Operations', 'Finance', 'HR', 'Sales', 'IT', 'Risk', 'Healthcare', 'Marketing'];
+const AI_TYPE_OPTIONS = ['Automation', 'Predictive Analytics', 'NLP', 'Computer Vision', 'Generative AI'];
+const RISK_LEVEL_OPTIONS = ['low', 'medium', 'high'];
 
 const statusColor: Record<string, string> = {
   active:    'bg-green-100 text-green-800',
@@ -24,6 +32,31 @@ const statusColor: Record<string, string> = {
   'on-hold': 'bg-yellow-100 text-yellow-800',
   completed: 'bg-gray-100 text-gray-800',
 };
+
+const riskColor: Record<string, string> = {
+  low:    'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  high:   'bg-red-100 text-red-800',
+};
+
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</h3>
+      {value ? (
+        <p className="text-gray-700 text-sm">{value}</p>
+      ) : (
+        <p className="text-gray-400 text-sm italic">Not set</p>
+      )}
+    </div>
+  );
+}
+
+function formatDate(dateStr: string | null | undefined): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 export default function ProjectDetailPage({ user }: { user: User }) {
   const { id } = useParams<{ id: string }>();
@@ -33,18 +66,20 @@ export default function ProjectDetailPage({ user }: { user: User }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Edit modal state
   const [showEdit, setShowEdit] = useState(false);
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formStatus, setFormStatus] = useState('planning');
+  const [formBusinessUnit, setFormBusinessUnit] = useState('');
+  const [formAiType, setFormAiType] = useState('');
+  const [formRiskLevel, setFormRiskLevel] = useState('');
+  const [formStartDate, setFormStartDate] = useState('');
+  const [formTargetEndDate, setFormTargetEndDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Delete state
   const [showDelete, setShowDelete] = useState(false);
 
-  // ── Fetch project ───────────────────────────────────────────
   const fetchProject = async () => {
     setLoading(true);
     setError('');
@@ -65,17 +100,20 @@ export default function ProjectDetailPage({ user }: { user: User }) {
 
   useEffect(() => { fetchProject(); }, [id]);
 
-  // ── Open edit modal ─────────────────────────────────────────
   const openEdit = () => {
     if (!project) return;
     setFormName(project.name);
     setFormDesc(project.description || '');
     setFormStatus(project.status);
+    setFormBusinessUnit(project.business_unit || '');
+    setFormAiType(project.ai_type || '');
+    setFormRiskLevel(project.risk_level || '');
+    setFormStartDate(project.start_date || '');
+    setFormTargetEndDate(project.target_end_date || '');
     setFormError('');
     setShowEdit(true);
   };
 
-  // ── Save edit ───────────────────────────────────────────────
   const handleSave = async () => {
     if (!formName.trim()) { setFormError('Project name is required.'); return; }
     setSaving(true);
@@ -87,6 +125,11 @@ export default function ProjectDetailPage({ user }: { user: User }) {
         name: formName.trim(),
         description: formDesc.trim(),
         status: formStatus,
+        business_unit: formBusinessUnit || null,
+        ai_type: formAiType || null,
+        risk_level: formRiskLevel || null,
+        start_date: formStartDate || null,
+        target_end_date: formTargetEndDate || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -100,19 +143,16 @@ export default function ProjectDetailPage({ user }: { user: User }) {
     setSaving(false);
   };
 
-  // ── Delete ──────────────────────────────────────────────────
   const handleDelete = async () => {
     const { error } = await supabase.from('projects').delete().eq('id', id);
     if (!error) navigate('/projects');
   };
 
-  // ── Logout ──────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  // ── Render ──────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
@@ -141,14 +181,20 @@ export default function ProjectDetailPage({ user }: { user: User }) {
       <main className="w-full">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-          {/* LOADING */}
+          {/* BACK BUTTON */}
+          <button
+            onClick={() => navigate('/projects')}
+            className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-6 transition-colors"
+          >
+            ← Back to Projects
+          </button>
+
           {loading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-gray-400 text-lg">Loading project...</div>
             </div>
           )}
 
-          {/* ERROR */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-6 py-4">
               {error}
@@ -158,17 +204,23 @@ export default function ProjectDetailPage({ user }: { user: User }) {
             </div>
           )}
 
-          {/* PROJECT DETAIL */}
           {!loading && !error && project && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
 
               {/* HEADER */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{project.name}</h1>
-                  <span className={`text-sm font-medium px-3 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
-                    {project.status}
-                  </span>
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
+                      {project.status}
+                    </span>
+                    {project.risk_level && (
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full capitalize ${riskColor[project.risk_level] || 'bg-gray-100 text-gray-600'}`}>
+                        {project.risk_level} risk
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -189,9 +241,32 @@ export default function ProjectDetailPage({ user }: { user: User }) {
               {/* DESCRIPTION */}
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Description</h2>
-                <p className="text-gray-700 leading-relaxed">
-                  {project.description || <span className="text-gray-400 italic">No description provided.</span>}
-                </p>
+                {project.description ? (
+                  <p className="text-gray-700 leading-relaxed">{project.description}</p>
+                ) : (
+                  <p className="text-gray-400 italic">Not set</p>
+                )}
+              </div>
+
+              {/* PROJECT DETAILS GRID */}
+              <div className="border-t border-gray-100 pt-6 mb-6">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Project Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Field label="Business Unit" value={project.business_unit} />
+                  <Field label="AI Type" value={project.ai_type} />
+                  <div>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Risk Level</h3>
+                    {project.risk_level ? (
+                      <span className={`inline-block text-sm font-medium px-2.5 py-1 rounded-full capitalize ${riskColor[project.risk_level] || 'bg-gray-100 text-gray-600'}`}>
+                        {project.risk_level}
+                      </span>
+                    ) : (
+                      <p className="text-gray-400 text-sm italic">Not set</p>
+                    )}
+                  </div>
+                  <Field label="Start Date" value={formatDate(project.start_date)} />
+                  <Field label="Target End Date" value={formatDate(project.target_end_date)} />
+                </div>
               </div>
 
               {/* METADATA */}
@@ -216,10 +291,6 @@ export default function ProjectDetailPage({ user }: { user: User }) {
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Project ID</h3>
                   <p className="text-gray-400 text-xs font-mono">{project.id}</p>
                 </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Status</h3>
-                  <p className="text-gray-700 text-sm capitalize">{project.status}</p>
-                </div>
               </div>
 
             </div>
@@ -230,7 +301,7 @@ export default function ProjectDetailPage({ user }: { user: User }) {
       {/* EDIT MODAL */}
       {showEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">✏️ Edit Project</h2>
 
             {formError && (
@@ -269,6 +340,82 @@ export default function ProjectDetailPage({ user }: { user: User }) {
                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Additional Details</p>
+
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit</label>
+                    <select
+                      value={formBusinessUnit}
+                      onChange={e => setFormBusinessUnit(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                    >
+                      <option value="">Select business unit...</option>
+                      {BUSINESS_UNIT_OPTIONS.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">AI Type</label>
+                    <select
+                      value={formAiType}
+                      onChange={e => setFormAiType(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                    >
+                      <option value="">Select AI type...</option>
+                      {AI_TYPE_OPTIONS.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
+                    <select
+                      value={formRiskLevel}
+                      onChange={e => setFormRiskLevel(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                    >
+                      <option value="">Select risk level...</option>
+                      {RISK_LEVEL_OPTIONS.map(r => (
+                        <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                      ))}
+                    </select>
+                    {formRiskLevel && (
+                      <div className="mt-2">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${riskColor[formRiskLevel]}`}>
+                          {formRiskLevel} risk
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={formStartDate}
+                        onChange={e => setFormStartDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Target End Date</label>
+                      <input
+                        type="date"
+                        value={formTargetEndDate}
+                        onChange={e => setFormTargetEndDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

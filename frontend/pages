@@ -7,11 +7,6 @@ interface Project {
   name: string;
   description: string;
   status: string;
-  business_unit: string | null;
-  ai_type: string | null;
-  risk_level: string | null;
-  start_date: string | null;
-  target_end_date: string | null;
   created_at: string;
 }
 
@@ -21,9 +16,6 @@ interface User {
 }
 
 const STATUS_OPTIONS = ['active', 'planning', 'on-hold', 'completed'];
-const BUSINESS_UNIT_OPTIONS = ['Operations', 'Finance', 'HR', 'Sales', 'IT', 'Risk', 'Healthcare', 'Marketing'];
-const AI_TYPE_OPTIONS = ['Automation', 'Predictive Analytics', 'NLP', 'Computer Vision', 'Generative AI'];
-const RISK_LEVEL_OPTIONS = ['low', 'medium', 'high'];
 
 const statusColor: Record<string, string> = {
   active:    'bg-green-100 text-green-800',
@@ -32,37 +24,31 @@ const statusColor: Record<string, string> = {
   completed: 'bg-gray-100 text-gray-800',
 };
 
-const riskColor: Record<string, string> = {
-  low:    'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high:   'bg-red-100 text-red-800',
-};
-
 export default function ProjectsPage({ user }: { user: User }) {
   const navigate = useNavigate();
 
+  // Data state
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Search & filter
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // Form state
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formStatus, setFormStatus] = useState('planning');
-  const [formBusinessUnit, setFormBusinessUnit] = useState('');
-  const [formAiType, setFormAiType] = useState('');
-  const [formRiskLevel, setFormRiskLevel] = useState('');
-  const [formStartDate, setFormStartDate] = useState('');
-  const [formTargetEndDate, setFormTargetEndDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // ── Fetch projects ──────────────────────────────────────────
   const fetchProjects = async () => {
     setLoading(true);
     setError('');
@@ -82,21 +68,13 @@ export default function ProjectsPage({ user }: { user: User }) {
 
   useEffect(() => { fetchProjects(); }, []);
 
-  const resetForm = () => {
+  // ── Open modal helpers ──────────────────────────────────────
+  const openCreate = () => {
+    setEditingProject(null);
     setFormName('');
     setFormDesc('');
     setFormStatus('planning');
-    setFormBusinessUnit('');
-    setFormAiType('');
-    setFormRiskLevel('');
-    setFormStartDate('');
-    setFormTargetEndDate('');
     setFormError('');
-  };
-
-  const openCreate = () => {
-    setEditingProject(null);
-    resetForm();
     setShowModal(true);
   };
 
@@ -105,15 +83,11 @@ export default function ProjectsPage({ user }: { user: User }) {
     setFormName(project.name);
     setFormDesc(project.description || '');
     setFormStatus(project.status);
-    setFormBusinessUnit(project.business_unit || '');
-    setFormAiType(project.ai_type || '');
-    setFormRiskLevel(project.risk_level || '');
-    setFormStartDate(project.start_date || '');
-    setFormTargetEndDate(project.target_end_date || '');
     setFormError('');
     setShowModal(true);
   };
 
+  // ── Save (create or update) ─────────────────────────────────
   const handleSave = async () => {
     if (!formName.trim()) {
       setFormError('Project name is required.');
@@ -122,21 +96,11 @@ export default function ProjectsPage({ user }: { user: User }) {
     setSaving(true);
     setFormError('');
 
-    const payload = {
-      name: formName.trim(),
-      description: formDesc.trim(),
-      status: formStatus,
-      business_unit: formBusinessUnit || null,
-      ai_type: formAiType || null,
-      risk_level: formRiskLevel || null,
-      start_date: formStartDate || null,
-      target_end_date: formTargetEndDate || null,
-    };
-
     if (editingProject) {
+      // UPDATE
       const { error } = await supabase
         .from('projects')
-        .update({ ...payload, updated_at: new Date().toISOString() })
+        .update({ name: formName.trim(), description: formDesc.trim(), status: formStatus, updated_at: new Date().toISOString() })
         .eq('id', editingProject.id);
 
       if (error) {
@@ -146,9 +110,10 @@ export default function ProjectsPage({ user }: { user: User }) {
         fetchProjects();
       }
     } else {
+      // CREATE
       const { error } = await supabase
         .from('projects')
-        .insert([{ user_id: user.id, ...payload }]);
+        .insert([{ user_id: user.id, name: formName.trim(), description: formDesc.trim(), status: formStatus }]);
 
       if (error) {
         setFormError(error.message.includes('unique') ? 'A project with that name already exists.' : 'Failed to create project. Try again.');
@@ -160,6 +125,7 @@ export default function ProjectsPage({ user }: { user: User }) {
     setSaving(false);
   };
 
+  // ── Delete ──────────────────────────────────────────────────
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('projects').delete().eq('id', id);
     if (!error) {
@@ -168,17 +134,20 @@ export default function ProjectsPage({ user }: { user: User }) {
     }
   };
 
+  // ── Logout ──────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
+  // ── Filtered list ───────────────────────────────────────────
   const filtered = projects.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
+  // ── Render ──────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
@@ -242,6 +211,7 @@ export default function ProjectsPage({ user }: { user: User }) {
             </select>
           </div>
 
+          {/* STATES */}
           {loading && (
             <div className="flex items-center justify-center py-20">
               <div className="text-gray-400 text-lg">Loading projects...</div>
@@ -275,45 +245,19 @@ export default function ProjectsPage({ user }: { user: User }) {
           {!loading && !error && filtered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map(project => (
-                <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                      className="font-semibold text-gray-900 text-lg leading-tight cursor-pointer hover:text-indigo-600 transition-colors"
-                    >
-                      {project.name}
-                    </h3>
-                    <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
+                <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-semibold text-gray-900 text-lg leading-tight">{project.name}</h3>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
                       {project.status}
                     </span>
                   </div>
-
                   {project.description && (
                     <p className="text-gray-500 text-sm line-clamp-2">{project.description}</p>
                   )}
-
-                  <div className="flex flex-wrap gap-2">
-                    {project.risk_level && (
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${riskColor[project.risk_level] || 'bg-gray-100 text-gray-600'}`}>
-                        {project.risk_level} risk
-                      </span>
-                    )}
-                    {project.ai_type && (
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
-                        {project.ai_type}
-                      </span>
-                    )}
-                    {project.business_unit && (
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-                        {project.business_unit}
-                      </span>
-                    )}
-                  </div>
-
                   <div className="text-xs text-gray-400">
                     Created {new Date(project.created_at).toLocaleDateString()}
                   </div>
-
                   <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100">
                     <button
                       onClick={() => openEdit(project)}
@@ -333,6 +277,7 @@ export default function ProjectsPage({ user }: { user: User }) {
             </div>
           )}
 
+          {/* PROJECT COUNT */}
           {!loading && projects.length > 0 && (
             <p className="text-sm text-gray-400 mt-6 text-center">
               Showing {filtered.length} of {projects.length} project{projects.length !== 1 ? 's' : ''}
@@ -344,7 +289,7 @@ export default function ProjectsPage({ user }: { user: User }) {
       {/* CREATE / EDIT MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               {editingProject ? '✏️ Edit Project' : '➕ New Project'}
             </h2>
@@ -389,82 +334,6 @@ export default function ProjectsPage({ user }: { user: User }) {
                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                   ))}
                 </select>
-              </div>
-
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Additional Details</p>
-
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit</label>
-                    <select
-                      value={formBusinessUnit}
-                      onChange={e => setFormBusinessUnit(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-                    >
-                      <option value="">Select business unit...</option>
-                      {BUSINESS_UNIT_OPTIONS.map(u => (
-                        <option key={u} value={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">AI Type</label>
-                    <select
-                      value={formAiType}
-                      onChange={e => setFormAiType(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-                    >
-                      <option value="">Select AI type...</option>
-                      {AI_TYPE_OPTIONS.map(t => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
-                    <select
-                      value={formRiskLevel}
-                      onChange={e => setFormRiskLevel(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
-                    >
-                      <option value="">Select risk level...</option>
-                      {RISK_LEVEL_OPTIONS.map(r => (
-                        <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
-                      ))}
-                    </select>
-                    {formRiskLevel && (
-                      <div className="mt-2">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${riskColor[formRiskLevel]}`}>
-                          {formRiskLevel} risk
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                      <input
-                        type="date"
-                        value={formStartDate}
-                        onChange={e => setFormStartDate(e.target.value)}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Target End Date</label>
-                      <input
-                        type="date"
-                        value={formTargetEndDate}
-                        onChange={e => setFormTargetEndDate(e.target.value)}
-                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 

@@ -12,11 +12,12 @@ interface Stats {
   active: number;
   planning: number;
   completed: number;
+  highRisk: number;
 }
 
 export default function DashboardPage({ user }: { user: User }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats>({ total: 0, active: 0, planning: 0, completed: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, active: 0, planning: 0, completed: 0, highRisk: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function DashboardPage({ user }: { user: User }) {
       setLoading(true);
       const { data, error } = await supabase
         .from('projects')
-        .select('status')
+        .select('status, risk_level')
         .eq('user_id', user.id);
 
       if (!error && data) {
@@ -33,6 +34,7 @@ export default function DashboardPage({ user }: { user: User }) {
           active:    data.filter(p => p.status === 'active').length,
           planning:  data.filter(p => p.status === 'planning').length,
           completed: data.filter(p => p.status === 'completed').length,
+          highRisk:  data.filter(p => p.risk_level === 'high').length,
         });
       }
       setLoading(false);
@@ -75,6 +77,13 @@ export default function DashboardPage({ user }: { user: User }) {
       color: 'bg-gray-50 border-gray-200',
       textColor: 'text-gray-700',
     },
+    {
+      label: 'High Risk',
+      value: stats.highRisk,
+      icon: '🔴',
+      color: 'bg-red-50 border-red-200',
+      textColor: 'text-red-700',
+    },
   ];
 
   return (
@@ -113,7 +122,7 @@ export default function DashboardPage({ user }: { user: User }) {
           </div>
 
           {/* STAT CARDS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
             {statCards.map((card) => (
               <div
                 key={card.label}
