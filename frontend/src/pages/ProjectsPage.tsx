@@ -247,8 +247,13 @@ export default function ProjectsPage({ user }: { user: User }) {
               {filtered.map(project => (
                 <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow flex flex-col gap-4">
                   <div className="flex items-start justify-between">
-                    <h3 className="font-semibold text-gray-900 text-lg leading-tight">{project.name}</h3>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
+                   <h3
+  onClick={() => navigate(`/projects/${project.id}`)}
+  className="font-semibold text-gray-900 text-lg leading-tight cursor-pointer hover:text-indigo-600 transition-colors"
+>
+  {project.name}
+</h3>
+ <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[project.status] || 'bg-gray-100 text-gray-600'}`}>
                       {project.status}
                     </span>
                   </div>

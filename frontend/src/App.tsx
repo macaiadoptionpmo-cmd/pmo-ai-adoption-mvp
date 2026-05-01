@@ -1,3 +1,4 @@
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './api/supabaseClient';
@@ -56,7 +57,7 @@ export default function App() {
           }
         />
         <Route
-          path="/projects"
+          path="/projects/:id"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
               <ProjectsPage user={user} />
