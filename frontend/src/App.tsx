@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from './api/supabaseClient';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProjectsPage from './pages/ProjectsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -10,26 +11,18 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        setIsAuthenticated(true);
+      } else {
         setIsAuthenticated(false);
       }
     };
-
     checkAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
         setIsAuthenticated(true);
@@ -39,16 +32,13 @@ export default function App() {
       }
     });
 
-    return () => subscription?.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   if (isAuthenticated === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Loading...</h1>
-          <p className="text-gray-600">Checking authentication status</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500 text-lg">Loading...</div>
       </div>
     );
   }
@@ -62,6 +52,14 @@ export default function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
               <DashboardPage user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+              <ProjectsPage user={user} />
             </ProtectedRoute>
           }
         />
