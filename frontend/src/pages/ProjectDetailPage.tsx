@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
+import ComplianceCheckModal from '../components/ComplianceCheckModal';
 
 interface Project {
   id: string;
@@ -79,6 +80,7 @@ export default function ProjectDetailPage({ user }: { user: User }) {
   const [formError, setFormError] = useState('');
 
   const [showDelete, setShowDelete] = useState(false);
+  const [showComplianceModal, setShowComplianceModal] = useState(false);
 
   const fetchProject = async () => {
     setLoading(true);
@@ -222,7 +224,13 @@ export default function ProjectDetailPage({ user }: { user: User }) {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShowComplianceModal(true)}
+                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-4 py-2 rounded-xl text-sm transition-colors border border-emerald-200"
+                  >
+                    ◎ Run Compliance Check
+                  </button>
                   <button
                     onClick={openEdit}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-colors"
@@ -297,6 +305,17 @@ export default function ProjectDetailPage({ user }: { user: User }) {
           )}
         </div>
       </main>
+
+      {/* COMPLIANCE CHECK MODAL */}
+      {showComplianceModal && project && (
+        <ComplianceCheckModal
+          projectId={project.id}
+          projectName={project.name}
+          user={user}
+          onClose={() => setShowComplianceModal(false)}
+          onComplete={() => {}}
+        />
+      )}
 
       {/* EDIT MODAL */}
       {showEdit && (

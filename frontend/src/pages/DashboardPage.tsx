@@ -19,6 +19,7 @@ export default function DashboardPage({ user }: { user: User }) {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, planning: 0, completed: 0, highRisk: 0 });
   const [loading, setLoading] = useState(true);
+  const [adherenceRate, setAdherenceRate] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -37,6 +38,17 @@ export default function DashboardPage({ user }: { user: User }) {
           highRisk:  data.filter(p => p.risk_level === 'high').length,
         });
       }
+
+      const { data: auditData } = await supabase
+        .from('audit_log')
+        .select('result')
+        .eq('user_id', user.id);
+
+      if (auditData && auditData.length > 0) {
+        const compliantCount = auditData.filter(r => r.result === 'compliant').length;
+        setAdherenceRate(Math.round((compliantCount / auditData.length) * 100));
+      }
+
       setLoading(false);
     };
 
@@ -48,7 +60,7 @@ export default function DashboardPage({ user }: { user: User }) {
     navigate('/login');
   };
 
-  const statCards = [
+  const statCards: { label: string; value: number | string; icon: string; color: string; textColor: string; onClick?: () => void }[] = [
     {
       label: 'Total Projects',
       value: stats.total,
@@ -83,6 +95,14 @@ export default function DashboardPage({ user }: { user: User }) {
       icon: '🔴',
       color: 'bg-red-50 border-red-200',
       textColor: 'text-red-700',
+    },
+    {
+      label: 'Compliance Rate',
+      value: adherenceRate !== null ? `${adherenceRate}%` : '—',
+      icon: '✓',
+      color: 'bg-emerald-50 border-emerald-200',
+      textColor: 'text-emerald-700',
+      onClick: () => navigate('/compliance'),
     },
   ];
 
@@ -126,7 +146,8 @@ export default function DashboardPage({ user }: { user: User }) {
             {statCards.map((card) => (
               <div
                 key={card.label}
-                className={`rounded-2xl border p-6 ${card.color} flex flex-col gap-2`}
+                onClick={card.onClick}
+                className={`rounded-2xl border p-6 ${card.color} flex flex-col gap-2 ${card.onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
               >
                 <div className="text-2xl">{card.icon}</div>
                 <div className={`text-3xl font-bold ${card.textColor}`}>
@@ -162,10 +183,10 @@ export default function DashboardPage({ user }: { user: User }) {
                 Monitor policy adherence, risk scores, and audit trails.
               </p>
               <button
-                disabled
-                className="bg-gray-100 text-gray-400 font-semibold px-5 py-2.5 rounded-xl text-sm cursor-not-allowed"
+                onClick={() => navigate('/compliance')}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
               >
-                Coming Soon
+                Go to Compliance →
               </button>
             </div>
 

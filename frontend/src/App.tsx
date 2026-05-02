@@ -5,6 +5,7 @@ import { supabase } from './api/supabaseClient';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
+import CompliancePage from './pages/CompliancePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -69,6 +70,14 @@ export default function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
               <ProjectDetailPage user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/compliance"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+              <CompliancePage user={user} />
             </ProtectedRoute>
           }
         />
