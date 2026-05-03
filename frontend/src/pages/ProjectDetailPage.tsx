@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
 import ComplianceCheckModal from '../components/ComplianceCheckModal';
+import GuidanceAssistant from '../components/GuidanceAssistant';
 
 interface Project {
   id: string;
@@ -467,6 +468,18 @@ export default function ProjectDetailPage({ user }: { user: User }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI GUIDANCE ASSISTANT */}
+      {project && (
+        <GuidanceAssistant
+          project_id={project.id}
+          name={project.name}
+          classification={project.ai_type || 'Not classified'}
+          status={project.status}
+          governance_profile={project.risk_level ? `${project.risk_level} risk` : 'Not specified'}
+          description={project.description || undefined}
+        />
       )}
 
     </div>
