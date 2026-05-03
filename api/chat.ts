@@ -88,7 +88,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   // Supplement with category entries when query is short
   if (words.length < 3 && kbEntries.length < 2) {
-    const fallbackCategory = project_context.governance_profile.toLowerCase().includes('high')
+    const fallbackCategory = project_context.governance_profile?.toLowerCase().includes('high')
       ? 'compliance'
       : 'governance';
     const { data: catEntries } = await supabaseAdmin
