@@ -1,4 +1,12 @@
 {
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "functions": {
+    "frontend/api/**/*.ts": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -8,8 +16,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "framework": "vite"
+  ]
 }
