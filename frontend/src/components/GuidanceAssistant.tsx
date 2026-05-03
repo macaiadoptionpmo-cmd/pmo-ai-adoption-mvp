@@ -6,10 +6,10 @@ import { supabase } from '../api/supabaseClient';
 interface ProjectContext {
   project_id: string;
   name: string;
-  classification: string;
+  classification: string | null;
   status: string;
-  governance_profile: string;
-  description?: string;
+  governance_profile?: string | null;
+  description?: string | null;
 }
 
 interface Message {
