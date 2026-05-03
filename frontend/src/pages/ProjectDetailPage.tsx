@@ -12,6 +12,8 @@ interface Project {
   business_unit: string | null;
   ai_type: string | null;
   risk_level: string | null;
+  ai_work_classification: string | null;
+  governance_profile: string | null;
   start_date: string | null;
   target_end_date: string | null;
   created_at: string;
@@ -475,10 +477,10 @@ export default function ProjectDetailPage({ user }: { user: User }) {
         <GuidanceAssistant
           project_id={project.id}
           name={project.name}
-          classification={project.ai_type || 'Not classified'}
+          classification={project.ai_work_classification}
           status={project.status}
-          governance_profile={project.risk_level ? `${project.risk_level} risk` : 'Not specified'}
-          description={project.description || undefined}
+          governance_profile={project.governance_profile}
+          description={project.description}
         />
       )}
 
