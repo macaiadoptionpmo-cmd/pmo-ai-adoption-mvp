@@ -166,7 +166,7 @@ export default function Landing() {
           {/* ConvertKit Form Embed */}
           <div className="bg-white rounded-2xl p-8 text-gray-900">
             <form
-              action="https://app.convertkit.com/forms/YOUR_FORM_ID/subscriptions"
+              action="https://app.convertkit.com/forms/940324/subscriptions"
               method="post"
               className="space-y-4"
             >
