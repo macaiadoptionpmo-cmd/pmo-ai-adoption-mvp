@@ -95,7 +95,6 @@ export default function Landing() {
               <p className="text-xs text-gray-500">We'll email you 48 hours before launch. No spam, ever.</p>
             </form>
           </div>
-          <p className="text-teal-100 text-sm">Join the beta. Shape the future of AI governance.</p>
         </div>
       </section>
 
@@ -121,3 +120,4 @@ export default function Landing() {
       </footer>
     </div>
   );
+}
