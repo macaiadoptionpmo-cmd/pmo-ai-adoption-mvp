@@ -114,7 +114,7 @@ export default function Landing() {
           <div className="flex gap-6">
             <a href="#" className="hover:text-gray-900">Twitter</a>
             <a href="#" className="hover:text-gray-900">LinkedIn</a>
-            <a href="mailto:greenfieldworkai@outlook.com" className="hover:text-gray-900">Email</a>
+            <a href="mailto:greenfieldworkai@yahoo.com" className="hover:text-gray-900">Email</a>
           </div>
         </div>
       </footer>
